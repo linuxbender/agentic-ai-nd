@@ -7,8 +7,6 @@ import json
 # Load API key from .env file
 load_dotenv()
 
-# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 client = OpenAI(
     base_url="https://openai.vocareum.com/v1",
     api_key=os.getenv("OPENAI_API_KEY"),
@@ -48,8 +46,81 @@ def deterministic_agent(user: FitnessUser) -> Dict:
         }
     }
     """
-    # Your code goes here
-    pass
+    # Determine workout days based on fitness level
+    workout_days_map = {
+        1: 3,  # Beginner: 3 days
+        2: 3,  # Beginner: 3 days
+        3: 4,  # Intermediate: 4 days
+        4: 5,  # Advanced: 5 days
+        5: 6   # Expert: 6 days
+    }
+    
+    # Determine intensity based on fitness level
+    intensity_map = {
+        1: "low",
+        2: "light",
+        3: "moderate",
+        4: "high",
+        5: "very high"
+    }
+    
+    # Determine duration based on age and fitness level
+    base_duration = 30
+    if user.fitness_level >= 4:
+        base_duration = 60
+    elif user.fitness_level >= 3:
+        base_duration = 45
+    
+    if user.age > 50:
+        base_duration = max(30, base_duration - 15)
+    
+    # Map goals to workout types
+    workout_types = []
+    if "weight management" in user.goals or "weight loss" in user.goals:
+        workout_types.append("cardio")
+    if "strength building" in user.goals or "muscle gain" in user.goals:
+        workout_types.append("strength training")
+    if "joint mobility" in user.goals or "flexibility" in user.goals:
+        workout_types.append("yoga or stretching")
+    if "stress reduction" in user.goals:
+        workout_types.append("yoga or stretching")
+    
+    if not workout_types:
+        workout_types = ["general fitness"]
+    
+    # Build weekly schedule
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    weekly_schedule = {}
+    workout_days = workout_days_map.get(user.fitness_level, 3)
+    intensity = intensity_map.get(user.fitness_level, "moderate")
+    
+    workout_index = 0
+    for i, day in enumerate(days):
+        if i < workout_days:
+            workout_type = workout_types[workout_index % len(workout_types)]
+            duration = base_duration
+            
+            # Rest days between intense workouts
+            if i > 0 and i < 6 and i % 2 == 0:
+                workout_type = "yoga or stretching"
+                duration = base_duration // 2
+            
+            weekly_schedule[day] = {
+                "type": workout_type,
+                "duration": duration,
+                "intensity": intensity,
+                "description": f"Perform {workout_type} session with {intensity} intensity for {duration} minutes"
+            }
+            workout_index += 1
+        else:
+            weekly_schedule[day] = {
+                "type": "rest",
+                "duration": 0,
+                "intensity": "none",
+                "description": "Rest day or light activity"
+            }
+    
+    return {"weekly_schedule": weekly_schedule}
 
 
 # ======== AGENT 2 — LLM-Based Planner ========
@@ -71,9 +142,25 @@ def llm_agent(user: FitnessUser) -> Dict:
     - Preferences: {preferences_text}
     - Limitations: {limitations_text}
 
-    # TODO: Add prompt instructions here to guide the LLM:
-    # What should it focus on? How should it present the plan?
-    # What format should the response follow?
+    Instructions:
+    1. Create a detailed weekly workout plan with specific exercises for each day
+    2. Ensure the plan respects the client's fitness level and any limitations
+    3. Incorporate their preferences into the plan where possible
+    4. Balance between different types of workouts (cardio, strength, flexibility)
+    5. Include rest days appropriately based on fitness level
+    6. Provide reasoning for the plan structure
+    7. Add any special considerations or modifications
+    
+    Format your response as a JSON object with the following structure:
+    {{
+        "reasoning": "Brief explanation of the plan",
+        "weekly_schedule": {{
+            "Monday": {{"type": "...", "duration": 45, "intensity": "...", "description": "..."}},
+            "Tuesday": {{"type": "...", "duration": 45, "intensity": "...", "description": "..."}},
+            ...
+        }},
+        "considerations": "Any special notes or modifications"
+    }}
     """
 
     try:
