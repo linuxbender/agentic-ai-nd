@@ -1,0 +1,12 @@
+# Python 3.14.0
+# Core dependencies
+openai==2.8.1
+ipython==9.7.0
+requests==2.32.5
+python-dotenv==1.2.1
+pandas==2.3.3
+
+# Additional dependencies (auto-installed)
+pydantic==2.12.4
+httpx==0.28.1
+tqdm==4.67.1
