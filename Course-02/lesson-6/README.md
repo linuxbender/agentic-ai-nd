@@ -340,10 +340,6 @@ This is an educational project. Feel free to:
 - [LangChain Documentation](https://python.langchain.com/)
 - [AI Agent Design Patterns](https://www.deeplearning.ai/)
 
-## 📝 License
-
-This project is part of the Agentic AI Nanodegree program.
-
 ## 👨‍💻 Author
 
 Created as part of Course 02, Lesson 6: Prompt Chaining Workflows
