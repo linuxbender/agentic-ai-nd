@@ -4,7 +4,10 @@ from dotenv import load_dotenv
 
 # Load environment variables and initialize OpenAI client
 load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+client = OpenAI(
+    base_url = "https://openai.vocareum.com/v1",
+    api_key=os.getenv("OPENAI_API_KEY"))
 
 # --- Helper Function for API Calls ---
 def call_openai(system_prompt, user_prompt, model="gpt-3.5-turbo"):
@@ -45,20 +48,35 @@ def pricing_strategist_agent(query, product_data=None, customer_data=None):
     system_prompt = """You are a pricing strategist agent. Your task is to recommend optimal pricing 
     strategies based on product research and customer analysis."""
     
-    # TODO: Implement this function
-    # It should use product_data and customer_data to inform the pricing strategy
-    pass  # Replace this with your implementation
+    user_prompt = f"Analyze optimal pricing for: {query}"
+    return call_openai(system_prompt, user_prompt)
 
 
 # --- Routing Agent with LLM-Based Task Determination ---
 def routing_agent(query, *args):
     """Routing agent that determines which agent to use based on the query."""
+
+    system_prompt = """You are a helpful AI assistant that categorizes retail-related user queries. 
+    Based on the user's query, determine if it is primarily about:
+    * "product research" (e.g., asking for product specs, trends, competitor prices)
+    * "customer analysis" (e.g., asking about customer feedback, preferences, purchase patterns)
+    * "pricing strategy" (e.g., asking for optimal pricing for a product)
+    Respond only with one of these exact phrases: "product research", "customer analysis", or "pricing strategy".
+    """
+    user_prompt = f"Analyze which agent I need: {query}"
+
+    task_type = call_openai(system_prompt, user_prompt)
+
+    if task_type == "customer analysis": 
+        return customer_analyzer_agent(query)
+
+    if task_type == "product research":
+        return product_researcher_agent(query)
     
-    # TODO: Implement the routing agent
-    # 1. Use an LLM to analyze the query and determine the correct task type
-    # 2. Route the query to the appropriate agent
-    # 3. Return the results from the chosen agent
-    pass  # Replace this with your implementation
+    if task_type == "pricing strategy":
+        return pricing_strategist_agent(query)
+
+    return ""
 
 
 # --- Example Usage ---
@@ -72,8 +90,9 @@ if __name__ == "__main__":
     
     # Process each query
     for query in queries:
-        print(f"\nQuery: {query}")
-        print("\nProcessing...")
-        
-        # TODO: Use the routing agent to process the query
-        # Print the results
+        print(f"\n\nProcessing Query: \"{query}\"")
+        print("-" * 30)
+        result = routing_agent(query)
+        print("\n--- ROUTING AGENT FINAL RESULT ---")
+        print(result)
+        print("=" * 30)
