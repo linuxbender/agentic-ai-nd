@@ -1,0 +1,94 @@
+---
+title: Refinery Optimization System - Prompt Chaining Architecture
+---
+
+%% This diagram illustrates the complete workflow of the Refinery Optimization System
+%% showing how 4 AI agents work sequentially to optimize petroleum refinery operations
+
+flowchart TB
+    %% Define styles
+    classDef inputStyle fill:#e1f5ff,stroke:#01579b,stroke-width:2px,color:#000
+    classDef agentStyle fill:#fff3e0,stroke:#e65100,stroke-width:3px,color:#000
+    classDef outputStyle fill:#f1f8e9,stroke:#33691e,stroke-width:2px,color:#000
+    classDef dataStyle fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+    classDef finalStyle fill:#c8e6c9,stroke:#1b5e20,stroke-width:4px,color:#000
+
+    %% Start Node
+    START(["🏭 Start Workflow"]):::inputStyle
+    
+    %% Input
+    INPUT["📦 Input: Feedstock Name<br/>(e.g., West Texas Intermediate Crude)"]:::inputStyle
+    
+    %% Agent 1: Feedstock Analyst
+    AGENT1["🔬 Agent 1: Feedstock Analyst<br/>---<br/>Analyzes crude oil composition"]:::agentStyle
+    LLM1["🤖 LLM Call<br/>Model: gpt-4o-mini<br/>Temperature: 0.7"]:::dataStyle
+    OUTPUT1["📄 Output 1:<br/>Chemical composition<br/>API Gravity, Sulfur content<br/>Refining characteristics"]:::outputStyle
+    
+    %% Agent 2: Distillation Planner
+    AGENT2["⚗️ Agent 2: Distillation Planner<br/>---<br/>Plans distillation yields"]:::agentStyle
+    LLM2["🤖 LLM Call<br/>Model: gpt-4o-mini<br/>Temperature: 0.7"]:::dataStyle
+    OUTPUT2["📄 Output 2:<br/>Product yield percentages<br/>Gasoline: 45%<br/>Diesel: 30%<br/>Kerosene: 15%<br/>Other: 10%"]:::outputStyle
+    
+    %% Agent 3: Market Analyst
+    AGENT3["📊 Agent 3: Market Analyst<br/>---<br/>Analyzes market conditions"]:::agentStyle
+    LLM3["🤖 LLM Call<br/>Model: gpt-4o-mini<br/>Temperature: 0.7"]:::dataStyle
+    OUTPUT3["📄 Output 3:<br/>Market demand levels<br/>Profitability trends<br/>Seasonal factors"]:::outputStyle
+    
+    %% Agent 4: Production Optimizer
+    AGENT4["🎯 Agent 4: Production Optimizer<br/>---<br/>Recommends optimal strategy"]:::agentStyle
+    LLM4["🤖 LLM Call<br/>Model: gpt-4o-mini<br/>Temperature: 0.6"]:::dataStyle
+    
+    %% Final Output
+    FINAL["✨ Final Recommendation<br/>---<br/>Optimized production plan<br/>Product priorities<br/>Expected profitability<br/>Action items"]:::finalStyle
+    
+    %% End Node
+    END(["🎉 Workflow Complete"]):::finalStyle
+    
+    %% Flow connections with labels
+    START --> INPUT
+    INPUT -->|"Initialize Workflow"| AGENT1
+    
+    %% Agent 1 Flow
+    AGENT1 -->|"System Prompt:<br/>Petrochemical Expert"| LLM1
+    LLM1 -->|"Analysis Result"| OUTPUT1
+    
+    %% Agent 2 Flow
+    OUTPUT1 -->|"Feed Output 1"| AGENT2
+    AGENT2 -->|"System Prompt:<br/>Distillation Planner"| LLM2
+    LLM2 -->|"Yield Estimates"| OUTPUT2
+    
+    %% Agent 3 Flow
+    OUTPUT2 -->|"Feed Output 2"| AGENT3
+    AGENT3 -->|"System Prompt:<br/>Market Analyst"| LLM3
+    LLM3 -->|"Market Insights"| OUTPUT3
+    
+    %% Agent 4 Flow
+    OUTPUT2 -->|"Distillation Plan"| AGENT4
+    OUTPUT3 -->|"Market Data"| AGENT4
+    AGENT4 -->|"System Prompt:<br/>Optimization Expert"| LLM4
+    LLM4 -->|"Final Strategy"| FINAL
+    
+    FINAL --> END
+    
+    %% Add notes for key concepts
+    note1["`**Key Concept:**
+    Each agent's output becomes
+    the next agent's input
+    (Prompt Chaining)`"]
+    
+    note2["`**Architecture:**
+    Sequential execution
+    prevents parallel conflicts`"]
+    
+    note3["`**Data Flow:**
+    Output 2 and Output 3
+    both feed into Agent 4`"]
+    
+    OUTPUT1 -.->|"Explains"| note1
+    AGENT2 -.->|"Demonstrates"| note2
+    AGENT4 -.->|"Shows"| note3
+    
+    %% Apply styles to notes
+    style note1 fill:#fff9c4,stroke:#f57f17,stroke-width:2px,stroke-dasharray: 5 5
+    style note2 fill:#fff9c4,stroke:#f57f17,stroke-width:2px,stroke-dasharray: 5 5
+    style note3 fill:#fff9c4,stroke:#f57f17,stroke-width:2px,stroke-dasharray: 5 5
