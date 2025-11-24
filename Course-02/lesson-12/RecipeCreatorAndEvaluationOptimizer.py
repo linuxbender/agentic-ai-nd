@@ -38,10 +38,7 @@ RECIPE_REQUEST = {
 }
 
 class RecipeCreatorAgent:
-    """
-    Recipe Creator Agent
-    use create_recipe to start the work
-    """
+
     def create_recipe(self, recipe_request_dict, feedback=None):
 
         system_message = """
@@ -76,13 +73,38 @@ class RecipeCreatorAgent:
 
 
 class NutritionEvaluatorAgent:
-    """Nutrition Evaluator Agent
-    use evaluate to start the work
-    """
-    def evaluate(self, recipe_details_str, original_request_dict):
-        system_message = "You are a nutrition expert."
-        user_prompt = f"Evaluate this recipe: {recipe_details_str}"
-        return call_openai(system_message, user_prompt, "gpt-4", 1)
+
+    def evaluate(self, recipe_request, proposed_recipe):
+
+        system_message = """You are a strict dietitian. Your job is to find ANY and 
+        ALL violations of dietary constraints.
+        Do not accept approximations. Be meticulous and provide corrective feedback."""
+
+
+        user_prompt = f"""Recipe Request: {recipe_request}
+        
+        Proposed Recipe:
+        {proposed_recipe}
+        
+        Please evaluate this recipe against ALL the specified requirements.
+        Check EACH constraint individually and confirm whether it is satisfied:
+        
+        1. Is the protein content at least 30g per serving?
+        2. Is the carbohydrate content under 15g per serving?
+        3. Does it contain ANY gluten, dairy, or nuts (even trace amounts)?
+        4. Is it suitable for someone with diabetes (low glycemic index foods)?
+        5. Does it have no more than 8 ingredients?
+        6. Would it be flavorful and appealing to someone used to standard American diet?
+        7. Is total preparation and cooking time under 30 minutes?
+        8. Does it contain at least 3 different vegetables?
+        9. Does it include a source of omega-3 fatty acids?
+        
+        If ALL constraints are fully satisfied, begin your response with "APPROVED: This recipe meets all requirements."
+        
+        Otherwise, list specifically which requirements are NOT met and provide detailed suggestions for how to modify 
+        the recipe to meet those requirements while maintaining the integrity of the dish."""
+
+        return call_openai(system_message, user_prompt, "gpt-4", .1)
 
 
 def optimize_recipe():
