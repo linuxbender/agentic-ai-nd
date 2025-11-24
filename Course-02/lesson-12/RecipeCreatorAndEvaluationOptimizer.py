@@ -24,19 +24,6 @@ def call_openai(system_prompt, user_prompt, model="gpt-3.5-turbo", tmptur=0):
 
 MAX_RETRIES = 5
 
-# Example user constraints
-RECIPE_REQUEST = {
-    "base_dish": "pasta",
-    "constraints": [
-        "gluten-free",
-        "vegan",
-        "under 500 calories per serving",
-        "high protein (>15g per serving)",
-        "no coconut",
-        "taste must be rated 7/10 or higher"
-    ]
-}
-
 class RecipeCreatorAgent:
 
     def create_recipe(self, recipe_request_dict, feedback=None):
@@ -107,13 +94,28 @@ class NutritionEvaluatorAgent:
         return call_openai(system_message, user_prompt, "gpt-4", .1)
 
 
-def optimize_recipe():
-    """
-    starts the optimize recipe workflow
-    """
+def optimize_recipe(recipe_request):
 
     creator = RecipeCreatorAgent()
     evaluator = NutritionEvaluatorAgent()
+
+    recipe = None
+    feedback = None
+    attempts = 0
+
+    for attempt in range(MAX_RETRIES):
+        attempts += 1
+        print(f"\n--- Attempt #{attempts} ---")
+
+        recipe = creator.create_recipe(recipe_request, feedback)
+        evaluation = evaluator.evaluate(recipe_request, recipe)
+
+        if evaluation.lower().startswith("approved"):
+            break
+        else:
+            feedback = evaluation
+
+    return recipe, evaluation, attempts
 
 
 if __name__ == "__main__":
@@ -132,7 +134,16 @@ if __name__ == "__main__":
             - Must include a source of omega-3 fatty acids
         """
 
-    print("\nRecipe Request:")
-    print(recipe_request)
-    optimize_recipe()
+    recipe, evaluation, attempts = optimize_recipe(recipe_request)
+
+    if "APPROVED" in evaluation:
+        print("\n✅ All dietary constraints satisfied!")
+    else:
+        print("\n⚠️ Could not satisfy all constraints after maximum retries.")
+
+    print("\nFinal Recipe:")
+    print(recipe)
+
+    print("\nEvaluation:")
+    print(evaluation)
 
