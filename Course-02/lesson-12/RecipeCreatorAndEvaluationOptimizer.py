@@ -38,13 +38,41 @@ RECIPE_REQUEST = {
 }
 
 class RecipeCreatorAgent:
-    """Recipe Creator Agent
+    """
+    Recipe Creator Agent
     use create_recipe to start the work
     """
     def create_recipe(self, recipe_request_dict, feedback=None):
-        system_message = "You are a professional recipe creator."
-        user_prompt = f"Create a recipe based on: {recipe_request_dict}"
-        return call_openai(system_message, user_prompt, "gpt-4", 0.1)
+
+        system_message = """
+            You are a creative chef known for generating innovative dishes.
+            Prioritize flavor and general appeal. Follow dietary guidelines, but you can be flexible unless told otherwise.
+            Experiment with different flavors, styles, try fusion of different places, each time you are asked it must be 
+            something new, follow the instructions but be flexible to invent something new, never seen before.
+            Try foods that are slightly outside the guilines given, experiment, try something bold, don't be affraid to break 
+            the rules.
+        """
+
+        if feedback is None:
+            user_prompt = f"""Recipe Request: {recipe_request_dict}
+            
+            Create an exciting, flavorful recipe inspired by comfort food classics.
+            Do your best to follow the dietary guidelines, but prioritize creativity and taste first."""
+
+        else:
+            system_message = """You are an expert chef specializing in creating recipes that follow strict dietary constraints.
+            You must correct previous issues and follow all requirements with precision."""
+
+            user_prompt = f"""Recipe Request: {recipe_request_dict}
+            
+            Your previous recipe had the following issues:
+            {feedback}
+            
+            Please create a revised recipe addressing these specific issues.
+            Be precise and ensure all constraints are satisfied."""
+
+
+        return call_openai(system_message, user_prompt, "gpt-4", 1)
 
 
 class NutritionEvaluatorAgent:
