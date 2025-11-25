@@ -132,12 +132,16 @@ class Orchestrator:
     ##                                                                        ##
     ############################################################################
     def get_worker(self, task_type: str) -> WorkerAgent:
-        """Inspects the task type and returns the correct specialized agent."""
+        
         type_lower = task_type.lower()
         
-        # TODO: Implement the logic to return the correct agent.
+        if "hematology" in type_lower or "blood count" in type_lower:
+            return HematologyAgent(task_type)
+        elif "renal" in type_lower or "kidney" in type_lower:
+            return RenalFunctionAgent(task_type)
+        elif "liver" in type_lower:
+            return LiverFunctionAgent(task_type)
         
-
         # If no match is found, it's good practice to raise an error.
         raise ValueError(f"No worker agent configured for task type: {task_type}")
 
