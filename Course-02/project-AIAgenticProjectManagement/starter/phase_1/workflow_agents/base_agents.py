@@ -141,8 +141,8 @@ class RAGKnowledgePromptAgent:
         Returns:
         list: List of dictionaries containing chunk metadata.
         """
-        separator = "\n"
         text = re.sub(r'\s+', ' ', text).strip()
+        separator = " "  # After normalizing whitespace, use space as separator
 
         if len(text) <= self.chunk_size:
             return [{"chunk_id": 0, "text": text, "chunk_size": len(text)}]
@@ -151,17 +151,28 @@ class RAGKnowledgePromptAgent:
 
         while start < len(text):
             end = min(start + self.chunk_size, len(text))
-            if separator in text[start:end]:
-                end = start + text[start:end].rindex(separator) + len(separator)
 
+            # Try to find a natural break point (space) near the end
+            if end < len(text) and separator in text[start:end]:
+                # Find the last separator in the chunk to break at a word boundary
+                last_separator_pos = text[start:end].rfind(separator)
+                if last_separator_pos > 0:  # Make sure we found a separator and it's not at the start
+                    end = start + last_separator_pos + len(separator)
+
+            chunk_text = text[start:end].strip()
             chunks.append({
                 "chunk_id": chunk_id,
-                "text": text[start:end],
-                "chunk_size": end - start,
+                "text": chunk_text,
+                "chunk_size": len(chunk_text),
                 "start_char": start,
                 "end_char": end
             })
 
+            # If we've reached the end of the text, we're done
+            if end >= len(text):
+                break
+
+            # Move start forward, accounting for overlap
             start = end - self.chunk_overlap
             chunk_id += 1
 
