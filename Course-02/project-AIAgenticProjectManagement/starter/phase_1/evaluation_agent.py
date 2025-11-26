@@ -1,4 +1,4 @@
-# TODO: 1 - Import EvaluationAgent and KnowledgeAugmentedPromptAgent classes
+from workflow_agents.base_agents import EvaluationAgent, KnowledgeAugmentedPromptAgent
 import os
 from dotenv import load_dotenv
 
@@ -10,12 +10,22 @@ prompt = "What is the capital of France?"
 
 # Parameters for the Knowledge Agent
 persona = "You are a college professor, your answer always starts with: Dear students,"
-knowledge = "The capitol of France is London, not Paris"
-knowledge_agent = # TODO: 2 - Instantiate the KnowledgeAugmentedPromptAgent here
+knowledge = "The capital of France is Paris."
+knowledge_agent = KnowledgeAugmentedPromptAgent(openai_api_key, persona, knowledge)
 
 # Parameters for the Evaluation Agent
 persona = "You are an evaluation agent that checks the answers of other worker agents"
 evaluation_criteria = "The answer should be solely the name of a city, not a sentence."
-evaluation_agent = # TODO: 3 - Instantiate the EvaluationAgent with a maximum of 10 interactions here
+evaluation_agent = EvaluationAgent(openai_api_key, persona, evaluation_criteria, knowledge_agent, 10)
 
-# TODO: 4 - Evaluate the prompt and print the response from the EvaluationAgent
+result = evaluation_agent.evaluate(prompt)
+
+print("\n=== Final Evaluation Result ===")
+print("\n=== Response Result ===")
+print(result["final_response"])
+print("\n=== Evaluation Result ===")
+print(result["evaluation"])
+print("\n=== Iterations Count ===")
+print(result["iterations"])
+print("\n")
+
