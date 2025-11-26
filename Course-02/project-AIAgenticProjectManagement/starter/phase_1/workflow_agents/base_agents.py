@@ -10,6 +10,7 @@ from datetime import datetime
 
 OPENAI_BASE_URL = "https://openai.vocareum.com/v1"
 
+# DirectPromptAgent class definition
 class DirectPromptAgent:    
     def __init__(self, openai_api_key):
         self.openai_api_key = openai_api_key
@@ -27,8 +28,6 @@ class DirectPromptAgent:
             temperature=0
         )
         return response.choices[0].message.content
-
-        
 
 # AugmentedPromptAgent class definition
 class AugmentedPromptAgent:
@@ -76,7 +75,6 @@ class KnowledgeAugmentedPromptAgent:
             temperature=0
         )
         return response.choices[0].message.content
-
 
 # RAGKnowledgePromptAgent class definition
 class RAGKnowledgePromptAgent:
@@ -216,6 +214,7 @@ class RAGKnowledgePromptAgent:
 
         return response.choices[0].message.content
 
+# EvaluationAgent class definition
 class EvaluationAgent:
     def __init__(self, openai_api_key, persona, evaluation_criteria, worker_agent, max_interactions):
         # Initialize the EvaluationAgent with given attributes.
@@ -294,7 +293,7 @@ class EvaluationAgent:
             "iterations": self.max_interactions
         }
 
-
+# RoutingAgent class definition
 class RoutingAgent():
 
     def __init__(self, openai_api_key, agents):
@@ -337,7 +336,7 @@ class RoutingAgent():
         print(f"[Router] Best agent: {best_agent['name']} (score={best_score:.3f})")
         return best_agent["func"](user_input)
 
-
+# ActionPlanningAgent class definition
 class ActionPlanningAgent:
     def __init__(self, openai_api_key, knowledge):
         self.openai_api_key = openai_api_key
