@@ -150,29 +150,32 @@ routing_agent = RoutingAgent(openai_api_key=openai_api_key, agents=agent_routes)
 # Run the workflow
 
 print("\n*** Workflow execution started ***\n")
-# Workflow Prompt
-# ****
-workflow_prompt = "What would the development tasks for this product be?"
-# ****
-print(f"Task to complete in this workflow, workflow prompt = {workflow_prompt}")
+print(f"Product Specification:\n{product_spec}\n")
 
-print("\nDefining workflow steps from the workflow prompt")
+# Create comprehensive project plan with all components
+print("\n=== Phase 1: Generating User Stories ===")
+user_stories_query = f"Based on the product specification, generate user stories for the Email Router product:\n\n{product_spec}"
+user_stories = product_manager_support_function(user_stories_query)
+print(f"\nUser Stories:\n{user_stories}\n")
 
-workflow_steps = action_planning_agent.extract_steps_from_prompt(workflow_prompt)
-print(f"Workflow steps: {workflow_steps}\n")
+print("\n=== Phase 2: Defining Product Features ===")
+features_query = f"Based on these user stories, define the product features by grouping related stories:\n\n{user_stories}"
+product_features = program_manager_support_function(features_query)
+print(f"\nProduct Features:\n{product_features}\n")
 
-completed_steps = []
-
-for i, step in enumerate(workflow_steps):
-    print(f"\n=== Processing Step {i+1}/{len(workflow_steps)} ===")
-    print(f"Step: {step}")
-    
-    result = routing_agent.route(step)
-    completed_steps.append(result)
-    
-    print(f"\nResult:\n{result}")
+print("\n=== Phase 3: Creating Development Tasks ===")
+tasks_query = f"Based on these user stories and features, define detailed development tasks:\n\nUser Stories:\n{user_stories}\n\nFeatures:\n{product_features}"
+development_tasks = development_engineer_support_function(tasks_query)
+print(f"\nDevelopment Tasks:\n{development_tasks}\n")
 
 print("\n\n*** Workflow execution completed ***")
-print("\n=== Final Output ===")
-if completed_steps:
-    print(completed_steps[-1])
+print("\n" + "="*80)
+print("=== COMPREHENSIVE PROJECT PLAN FOR EMAIL ROUTER ===")
+print("="*80)
+print("\n--- USER STORIES ---")
+print(user_stories)
+print("\n--- PRODUCT FEATURES ---")
+print(product_features)
+print("\n--- DEVELOPMENT TASKS ---")
+print(development_tasks)
+print("\n" + "="*80)
