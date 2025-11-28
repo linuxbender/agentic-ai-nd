@@ -6,6 +6,14 @@ from lib.llm import LLM
 from lib.messages import AIMessage, UserMessage, SystemMessage, ToolMessage
 from lib.tooling import Tool, ToolCall
 from lib.memory import ShortTermMemory
+from dotenv import load_dotenv
+import os
+
+
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+BASE_URL = "https://openai.vocareum.com/v1"
 
 # Define the state schema
 class AgentState(TypedDict):
@@ -58,6 +66,8 @@ class Agent:
         """Step logic: Process the current state through the LLM"""
         # Initialize LLM
         llm = LLM(
+            api_key=OPENAI_API_KEY,
+            base_url=BASE_URL,
             model=self.model_name,
             temperature=self.temperature,
             tools=self.tools
