@@ -19,6 +19,12 @@ DISTRIBUTION_HISTORY = {}
 def check_history(penguin_name: str) -> Dict[str, Any]:
     """
     Check the recent resource distribution history for a specific penguin.
+
+    Args:
+        penguin_name: The name of the penguin to check history for.
+
+    Returns:
+        Dict with recent_food (int) and has_tool (bool).
     """
     history = DISTRIBUTION_HISTORY.get(penguin_name, [])
     recent_food = sum(h["food"] for h in history[-3:]) if history else 0
@@ -29,6 +35,14 @@ def check_history(penguin_name: str) -> Dict[str, Any]:
 def record_distribution(penguin_name: str, food: int, has_tool: bool) -> str:
     """
     Record the distribution of resources.
+
+    Args:
+        penguin_name: The name of the penguin receiving resources.
+        food: Amount of food given to the penguin.
+        has_tool: Whether a tool was given to the penguin.
+
+    Returns:
+        Confirmation message string.
     """
     if penguin_name not in DISTRIBUTION_HISTORY:
         DISTRIBUTION_HISTORY[penguin_name] = []
@@ -39,15 +53,24 @@ def record_distribution(penguin_name: str, food: int, has_tool: bool) -> str:
 # --- EXAMPLE TOOL (Student can change) ---
 @tool
 def find_food(penguin_name: str, method: str) -> int:
-  """Finds food using a specified method."""
-  if method == "fishing":
-    food_found = random.randint(2, 7)  # More food when fishing
-    print(f"{penguin_name} went fishing and found {food_found} food.")
-    return food_found
-  else:
-    food_found = random.randint(0, 3)
-    print(f"{penguin_name} foraged and found {food_found} food.")
-    return food_found
+    """
+    Finds food using a specified method.
+
+    Args:
+        penguin_name: The name of the penguin finding food.
+        method: The method to use for finding food (e.g., 'fishing' or 'foraging').
+
+    Returns:
+        Amount of food found as an integer.
+    """
+    if method == "fishing":
+        food_found = random.randint(2, 7)  # More food when fishing
+        print(f"{penguin_name} went fishing and found {food_found} food.")
+        return food_found
+    else:
+        food_found = random.randint(0, 3)
+        print(f"{penguin_name} foraged and found {food_found} food.")
+        return food_found
 
 class ScientistAgent(ToolCallingAgent):
     def __init__(self, initial_food_supply: int = 20, refresh_interval: int = 5) -> None:
@@ -154,22 +177,42 @@ class PenguinAgent(ToolCallingAgent):
         # YOUR CODE HERE
         # ****************************************************
         prompt = f"""You are Penguin {self.name}.
-        You have {self.food} food.
-        What do you want to do? Respond with JSON:  {{'action': '<action_string>', 'method': '<method_string>'}}"""
+        You have {self.food} food and {'have' if self.has_tool else 'do not have'} a tool.
+        
+        You can choose one of these actions:
+        1. 'find_food' with method 'fishing' or 'foraging' - to find food yourself
+        2. 'request_food' - to ask the scientist for food
+        
+        Respond ONLY with valid JSON in this exact format: {{"action": "find_food", "method": "fishing"}}
+        or {{"action": "request_food", "details": "need food"}}"""
 
         response = self.run(prompt)
         # ****************************************************
 
         try:
+            # Handle case where response is already a dict or int
+            if isinstance(response, dict):
+                return response
+            if isinstance(response, int):
+                # Tool was called and returned a number
+                return {"action": "find_food", "details": "found food via tool"}
+
+            # Parse JSON from string response
             action = json.loads(response.split("final_answer:")[-1].strip())
-            return action
-        except json.JSONDecodeError:
-            print(f"Error processing {self.name}'s action")
+
+            # Ensure we return a dictionary
+            if isinstance(action, dict):
+                return action
+            else:
+                print(f"Unexpected action type from {self.name}: {type(action)}")
+                return {"action": "request_food", "details": "default safe action"}
+        except (json.JSONDecodeError, AttributeError, ValueError) as e:
+            print(f"Error processing {self.name}'s action: {e}")
             return {"action": "request_food", "details": "default safe action"}
 
 def run_simulation():
     scientist = ScientistAgent(initial_food_supply=20, refresh_interval=5)
-    penguins = [PenguinAgent(f"Penguin {i}") for i in range(4)]
+    penguins = [PenguinAgent(f"Penguin_{i}") for i in range(4)]
 
     print("\nStarting Simulation...")
     for round in range(3):
@@ -181,6 +224,10 @@ def run_simulation():
         penguin_actions = {}
         for penguin in penguins:
             action = penguin.take_action()
+            # Ensure action is a dictionary
+            if not isinstance(action, dict):
+                print(f"Warning: {penguin.name} returned non-dict action: {action}")
+                action = {"action": "request_food", "details": "invalid action format"}
             penguin_actions[penguin.name] = action
             print(f"{penguin.name} Action: {action}")
 
