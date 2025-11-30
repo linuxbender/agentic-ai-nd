@@ -1,0 +1,56 @@
+flowchart TB
+    Customer["Customer Request"]
+    
+    subgraph Orchestrator["Orchestrator Agent"]
+        OA["Analyzes Customer Request<br/>Delegates to Specialized Agents<br/>Coordinates Workflow<br/>Generates Customer Response"]
+    end
+    
+    subgraph InventoryAgent["Inventory Management Agent"]
+        IA["Inventory Operations"]
+        T1["Tool: Check Inventory<br/>- get_all_inventory()<br/>- get_stock_level()"]
+        T2["Tool: Assess Reorder Needs<br/>- get_stock_level()<br/>- get_supplier_delivery_date()"]
+    end
+    
+    subgraph QuoteAgent["Quote Generation Agent"]
+        QA["Quote Operations"]
+        T3["Tool: Generate Quote<br/>- get_stock_level()<br/>- search_quote_history()"]
+        T4["Tool: Calculate Pricing<br/>- search_quote_history()<br/>- get_cash_balance()"]
+    end
+    
+    subgraph SalesAgent["Sales Transaction Agent"]
+        SA["Sales Operations"]
+        T5["Tool: Process Order<br/>- create_transaction()<br/>- get_stock_level()"]
+        T6["Tool: Financial Report<br/>- generate_financial_report()<br/>- get_cash_balance()"]
+    end
+    
+    Customer -->|Request| Orchestrator
+    
+    Orchestrator -->|Check Stock| InventoryAgent
+    InventoryAgent -->|Stock Info| Orchestrator
+    
+    Orchestrator -->|Request Quote| QuoteAgent
+    QuoteAgent -->|Quote Details| Orchestrator
+    
+    Orchestrator -->|Process Sale| SalesAgent
+    SalesAgent -->|Transaction Result| Orchestrator
+    
+    IA --> T1
+    IA --> T2
+    QA --> T3
+    QA --> T4
+    SA --> T5
+    SA --> T6
+    
+    Orchestrator -->|Response| Customer
+    
+    style Customer fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style Orchestrator fill:#ffe1e1,stroke:#333,stroke-width:3px
+    style InventoryAgent fill:#e1ffe1,stroke:#333,stroke-width:2px
+    style QuoteAgent fill:#fff5e1,stroke:#333,stroke-width:2px
+    style SalesAgent fill:#f5e1ff,stroke:#333,stroke-width:2px
+    style T1 fill:#f0f0f0,stroke:#666,stroke-width:1px
+    style T2 fill:#f0f0f0,stroke:#666,stroke-width:1px
+    style T3 fill:#f0f0f0,stroke:#666,stroke-width:1px
+    style T4 fill:#f0f0f0,stroke:#666,stroke-width:1px
+    style T5 fill:#f0f0f0,stroke:#666,stroke-width:1px
+    style T6 fill:#f0f0f0,stroke:#666,stroke-width:1px

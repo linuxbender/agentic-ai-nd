@@ -58,7 +58,6 @@ Your agents should have access to tools that interact with the system database a
 
 Use one of these tools to create your workflow diagram:
 
-- [Diagrams.net](https://www.diagrams.net/) (formerly Draw.io)
 - [Mermaid](https://mermaid.js.org/) (code-based diagrams)
 
 ---
