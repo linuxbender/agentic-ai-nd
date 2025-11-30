@@ -1,56 +1,80 @@
 flowchart TB
-    Customer["Customer Request"]
+    %% Main Actors
+    Customer["🧑‍💼 Customer Request<br/>Quote & Order Submission"]
     
-    subgraph Orchestrator["Orchestrator Agent"]
-        OA["Analyzes Customer Request<br/>Delegates to Specialized Agents<br/>Coordinates Workflow<br/>Generates Customer Response"]
+    %% Orchestrator Agent
+    subgraph Orchestrator["🎯 Orchestrator Agent"]
+        OA["Central Coordinator<br/>━━━━━━━━━━━━━━<br/>• Analyzes Customer Request<br/>• Delegates to Specialized Agents<br/>• Coordinates Multi-Agent Workflow<br/>• Aggregates Results<br/>• Generates Customer Response"]
     end
     
-    subgraph InventoryAgent["Inventory Management Agent"]
-        IA["Inventory Operations"]
-        T1["Tool: Check Inventory<br/>- get_all_inventory()<br/>- get_stock_level()"]
-        T2["Tool: Assess Reorder Needs<br/>- get_stock_level()<br/>- get_supplier_delivery_date()"]
+    %% Worker Agents
+    subgraph InventoryAgent["📦 Inventory Management Agent"]
+        IA["Inventory Operations<br/>━━━━━━━━━━━━━━<br/>• Stock Level Monitoring<br/>• Reorder Assessment<br/>• Supplier Coordination"]
+        T1["🔧 get_all_inventory<br/>🔧 get_stock_level"]
+        T2["🔧 get_supplier_delivery_date"]
     end
     
-    subgraph QuoteAgent["Quote Generation Agent"]
-        QA["Quote Operations"]
-        T3["Tool: Generate Quote<br/>- get_stock_level()<br/>- search_quote_history()"]
-        T4["Tool: Calculate Pricing<br/>- search_quote_history()<br/>- get_cash_balance()"]
+    subgraph QuoteAgent["💰 Quote Generation Agent"]
+        QA["Quote Operations<br/>━━━━━━━━━━━━━━<br/>• Price Calculation<br/>• Historical Analysis<br/>• Quote Preparation"]
+        T3["🔧 search_quote_history<br/>🔧 get_stock_level"]
+        T4["🔧 get_cash_balance"]
     end
     
-    subgraph SalesAgent["Sales Transaction Agent"]
-        SA["Sales Operations"]
-        T5["Tool: Process Order<br/>- create_transaction()<br/>- get_stock_level()"]
-        T6["Tool: Financial Report<br/>- generate_financial_report()<br/>- get_cash_balance()"]
+    subgraph SalesAgent["💳 Sales Transaction Agent"]
+        SA["Sales Operations<br/>━━━━━━━━━━━━━━<br/>• Order Processing<br/>• Transaction Recording<br/>• Financial Reporting"]
+        T5["🔧 create_transaction<br/>🔧 get_stock_level"]
+        T6["🔧 generate_financial_report<br/>🔧 get_cash_balance"]
     end
     
-    Customer -->|Request| Orchestrator
+    %% Main Flow: Customer <-> Orchestrator
+    Customer -->|"📨 Submit Request"| Orchestrator
+    Orchestrator -->|"✅ Formatted Response"| Customer
     
-    Orchestrator -->|Check Stock| InventoryAgent
-    InventoryAgent -->|Stock Info| Orchestrator
+    %% Orchestrator <-> Inventory Agent
+    Orchestrator -->|"📊 Check Stock Levels"| InventoryAgent
+    InventoryAgent -->|"📋 Stock Information"| Orchestrator
     
-    Orchestrator -->|Request Quote| QuoteAgent
-    QuoteAgent -->|Quote Details| Orchestrator
+    %% Orchestrator <-> Quote Agent
+    Orchestrator -->|"💵 Request Quote Calculation"| QuoteAgent
+    QuoteAgent -->|"📄 Quote Details & Pricing"| Orchestrator
     
-    Orchestrator -->|Process Sale| SalesAgent
-    SalesAgent -->|Transaction Result| Orchestrator
+    %% Orchestrator <-> Sales Agent
+    Orchestrator -->|"🛒 Process Sale Transaction"| SalesAgent
+    SalesAgent -->|"📊 Transaction Result"| Orchestrator
     
-    IA --> T1
-    IA --> T2
-    QA --> T3
-    QA --> T4
-    SA --> T5
-    SA --> T6
+    %% Agent -> Tool Connections
+    IA -.->|"uses"| T1
+    IA -.->|"uses"| T2
+    QA -.->|"uses"| T3
+    QA -.->|"uses"| T4
+    SA -.->|"uses"| T5
+    SA -.->|"uses"| T6
     
-    Orchestrator -->|Response| Customer
+    %% Styling - Customer (Tomato Red like demo.py)
+    style Customer fill:#FF6347,stroke:#000,stroke-width:2.5px,color:#fff
     
-    style Customer fill:#e1f5ff,stroke:#333,stroke-width:2px
-    style Orchestrator fill:#ffe1e1,stroke:#333,stroke-width:3px
-    style InventoryAgent fill:#e1ffe1,stroke:#333,stroke-width:2px
-    style QuoteAgent fill:#fff5e1,stroke:#333,stroke-width:2px
-    style SalesAgent fill:#f5e1ff,stroke:#333,stroke-width:2px
-    style T1 fill:#f0f0f0,stroke:#666,stroke-width:1px
-    style T2 fill:#f0f0f0,stroke:#666,stroke-width:1px
-    style T3 fill:#f0f0f0,stroke:#666,stroke-width:1px
-    style T4 fill:#f0f0f0,stroke:#666,stroke-width:1px
-    style T5 fill:#f0f0f0,stroke:#666,stroke-width:1px
-    style T6 fill:#f0f0f0,stroke:#666,stroke-width:1px
+    %% Styling - Orchestrator (Cornflower Blue like demo.py agents)
+    style Orchestrator fill:#6495ED,stroke:#000,stroke-width:3px,color:#fff
+    style OA fill:#6495ED,stroke:#000,stroke-width:2px,color:#fff
+    
+    %% Styling - Worker Agents (Cornflower Blue)
+    style InventoryAgent fill:#e8f4f8,stroke:#000,stroke-width:2px
+    style QuoteAgent fill:#e8f4f8,stroke:#000,stroke-width:2px
+    style SalesAgent fill:#e8f4f8,stroke:#000,stroke-width:2px
+    style IA fill:#6495ED,stroke:#000,stroke-width:2px,color:#fff
+    style QA fill:#6495ED,stroke:#000,stroke-width:2px,color:#fff
+    style SA fill:#6495ED,stroke:#000,stroke-width:2px,color:#fff
+    
+    %% Styling - Tools (Gold like demo.py)
+    style T1 fill:#FFD700,stroke:#000,stroke-width:1.5px,color:#000
+    style T2 fill:#FFD700,stroke:#000,stroke-width:1.5px,color:#000
+    style T3 fill:#FFD700,stroke:#000,stroke-width:1.5px,color:#000
+    style T4 fill:#FFD700,stroke:#000,stroke-width:1.5px,color:#000
+    style T5 fill:#FFD700,stroke:#000,stroke-width:1.5px,color:#000
+    style T6 fill:#FFD700,stroke:#000,stroke-width:1.5px,color:#000
+    
+    %% Link Styling
+    linkStyle 0 stroke:#FF6347,stroke-width:3px
+    linkStyle 1 stroke:#6495ED,stroke-width:3px
+    linkStyle 2,3,4,5,6,7 stroke:#000,stroke-width:2.5px
+    linkStyle 8,9,10,11,12,13 stroke:#666,stroke-width:1.5px,stroke-dasharray:5

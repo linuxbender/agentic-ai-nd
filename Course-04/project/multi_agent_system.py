@@ -106,6 +106,31 @@ paper_supplies = [
     {"item_name": "220 gsm poster paper",             "category": "specialty",    "unit_price": 0.35},
 ]
 
+# Synonym- und Normalisierungs-Mapping für eingehende Item-Namen
+ITEM_SYNONYMS = {
+    "a4 glossy paper": "Glossy paper",
+    "glossy a4 paper": "Glossy paper",
+    "heavy cardstock": "Cardstock",
+    "heavy cardstock (white)": "Cardstock",
+    "colored paper (assorted colors)": "Colored paper",
+    "assorted colored paper": "Colored paper",
+    "heavyweight cardstock": "Heavyweight paper",
+}
+
+def normalize_item_name(name: str) -> str:
+    if not name:
+        return name
+    key = name.strip().lower()
+    if key in ITEM_SYNONYMS:
+        return ITEM_SYNONYMS[key]
+    for canonical in [p["item_name"] for p in paper_supplies]:
+        if canonical.lower() in key or key in canonical.lower():
+            return canonical
+    return name
+
+# Cache für Lieferzeitberechnungen
+_delivery_cache: dict[tuple[str, int], str] = {}
+
 def generate_sample_inventory(paper_supplies: list, coverage: float = 0.4, seed: int = 137) -> pd.DataFrame:
     """
     Generate inventory for exactly a specified percentage of items from the full paper supply list.
@@ -521,10 +546,19 @@ def check_inventory_tool(item_name: str, date: str) -> str:
         String with stock information
     """
     try:
+        original_name = item_name
+        item_name = normalize_item_name(item_name)
         stock_df = get_stock_level(item_name, date)
-        if stock_df.empty:
-            return f"Item '{item_name}' not found in inventory."
-        
+        if stock_df.empty or stock_df["current_stock"].iloc[0] == 0:
+            # Vorschläge suchen
+            suggestions = []
+            tokens = [t for t in original_name.lower().replace('(', ' ').replace(')', ' ').split() if len(t) > 2]
+            for canonical in [p["item_name"] for p in paper_supplies]:
+                if any(t in canonical.lower() for t in tokens):
+                    suggestions.append(canonical)
+            suggestion_text = f" Similar items: {', '.join(sorted(set(suggestions)))}`" if suggestions else ""
+            return f"Item '{original_name}' not found or out of stock.{suggestion_text}"
+
         stock = int(stock_df["current_stock"].iloc[0])
         
         # Get unit price from inventory table
@@ -540,7 +574,6 @@ def check_inventory_tool(item_name: str, date: str) -> str:
         unit_price = float(inventory_df["unit_price"].iloc[0])
         
         return f"Item: {item_name}\nCurrent stock: {stock} units\nUnit price: ${unit_price:.2f}"
-    
     except Exception as e:
         return f"Error checking inventory: {str(e)}"
 
@@ -593,6 +626,9 @@ def check_delivery_time_tool(date: str, quantity: int) -> str:
         String with delivery date information
     """
     try:
+        cache_key = (date, int(quantity))
+        if cache_key in _delivery_cache:
+            return f"Cached delivery estimate for {quantity} units on {date}: {_delivery_cache[cache_key]} (reuse to avoid repetition)."
         delivery_date = get_supplier_delivery_date(date, quantity)
         
         # Calculate days
@@ -607,8 +643,9 @@ def check_delivery_time_tool(date: str, quantity: int) -> str:
         else:
             time_desc = f"{days} days"
         
-        return f"For an order of {quantity} units placed on {date}:\nEstimated delivery: {delivery_date} ({time_desc})"
-    
+        result = f"For an order of {quantity} units placed on {date}:\nEstimated delivery: {delivery_date} ({time_desc})"
+        _delivery_cache[cache_key] = result
+        return result
     except Exception as e:
         return f"Error checking delivery time: {str(e)}"
 
@@ -694,11 +731,12 @@ def process_sale_tool(item_name: str, quantity: int, unit_price: float, date: st
         String confirming the transaction
     """
     try:
-        # Check stock availability
+        original_name = item_name
+        item_name = normalize_item_name(item_name)
         stock_df = get_stock_level(item_name, date)
         if stock_df.empty:
-            return f"ERROR: Item '{item_name}' not found in inventory. Cannot process sale."
-        
+            return f"ERROR: Item '{original_name}' not found in inventory after normalization to '{item_name}'."
+
         current_stock = int(stock_df["current_stock"].iloc[0])
         
         if current_stock < quantity:
@@ -727,7 +765,6 @@ def process_sale_tool(item_name: str, quantity: int, unit_price: float, date: st
         result += f"Remaining Stock: {new_stock} units\n"
         
         return result
-    
     except Exception as e:
         return f"Error processing sale: {str(e)}"
 
@@ -842,9 +879,10 @@ orchestrator_agent = ToolCallingAgent(
 # TEST SCENARIO RUNNER
 # ============================================================================
 
-def run_test_scenarios():
+def run_test_scenarios(max_requests: int | None = None):
     """
-    Run the multi-agent system through all test scenarios from quote_requests_sample.csv
+    Run the multi-agent system through test scenarios from quote_requests_sample.csv.
+    max_requests: Optional Begrenzung für Smoke-Tests.
     """
     print("=" * 80)
     print("INITIALIZING MULTI-AGENT INVENTORY & SALES SYSTEM")
@@ -878,6 +916,10 @@ def run_test_scenarios():
     results = []
     
     for idx, row in quote_requests_sample.iterrows():
+        if max_requests is not None and idx >= max_requests:
+            break
+        # Cache pro Request zurücksetzen
+        _delivery_cache.clear()
         request_date = row["request_date"].strftime("%Y-%m-%d")
 
         print(f"\n{'=' * 80}")
@@ -964,4 +1006,6 @@ Please process this request appropriately.
 
 
 if __name__ == "__main__":
-    results = run_test_scenarios()
+    # Standard: voller Lauf; für schnellen Test kann env USE_SMOKE=1 gesetzt werden
+    max_req = 1 if os.getenv("USE_SMOKE") == "1" else None
+    results = run_test_scenarios(max_requests=max_req)

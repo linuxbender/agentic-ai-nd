@@ -1,0 +1,8 @@
+# Pinned dependencies (safe for Python 3.13)
+pandas==2.3.3
+numpy==2.3.5
+SQLAlchemy==2.0.44
+python-dotenv==1.2.1
+smolagents==1.23.0
+openai==1.73.0
+

@@ -1,0 +1,155 @@
+{
+  "rubric_evaluation": {
+    "cash_changes": 14,
+    "fulfilled_requests": 0,
+    "unfulfilled_requests": 12,
+    "total_requests": 20,
+    "criteria": {
+      "min_3_cash_changes": true,
+      "min_3_fulfilled": false,
+      "not_all_fulfilled": true
+    }
+  },
+  "details": [
+    {
+      "request_id": 1,
+      "cash_balance": 45124.7,
+      "inventory_value": 4875.3,
+      "fulfilled": false,
+      "unfulfilled": false
+    },
+    {
+      "request_id": 2,
+      "cash_balance": 45184.7,
+      "inventory_value": 4815.3,
+      "fulfilled": false,
+      "unfulfilled": false
+    },
+    {
+      "request_id": 3,
+      "cash_balance": 45630.7,
+      "inventory_value": 4369.3,
+      "fulfilled": false,
+      "unfulfilled": true
+    },
+    {
+      "request_id": 4,
+      "cash_balance": 45656.45,
+      "inventory_value": 4343.55,
+      "fulfilled": false,
+      "unfulfilled": false
+    },
+    {
+      "request_id": 5,
+      "cash_balance": 45720.25,
+      "inventory_value": 4279.75,
+      "fulfilled": false,
+      "unfulfilled": true
+    },
+    {
+      "request_id": 6,
+      "cash_balance": 45720.25,
+      "inventory_value": 4279.75,
+      "fulfilled": false,
+      "unfulfilled": false
+    },
+    {
+      "request_id": 7,
+      "cash_balance": 45797.65,
+      "inventory_value": 4202.349999999999,
+      "fulfilled": false,
+      "unfulfilled": false
+    },
+    {
+      "request_id": 8,
+      "cash_balance": 45797.65,
+      "inventory_value": 4202.349999999999,
+      "fulfilled": false,
+      "unfulfilled": true
+    },
+    {
+      "request_id": 9,
+      "cash_balance": 45832.65,
+      "inventory_value": 4167.349999999999,
+      "fulfilled": false,
+      "unfulfilled": true
+    },
+    {
+      "request_id": 13,
+      "cash_balance": 45832.65,
+      "inventory_value": 4167.349999999999,
+      "fulfilled": false,
+      "unfulfilled": true
+    },
+    {
+      "request_id": 12,
+      "cash_balance": 45832.65,
+      "inventory_value": 4167.349999999999,
+      "fulfilled": false,
+      "unfulfilled": true
+    },
+    {
+      "request_id": 10,
+      "cash_balance": 45861.15,
+      "inventory_value": 4138.849999999999,
+      "fulfilled": false,
+      "unfulfilled": true
+    },
+    {
+      "request_id": 11,
+      "cash_balance": 45995.79,
+      "inventory_value": 3994.25,
+      "fulfilled": false,
+      "unfulfilled": false
+    },
+    {
+      "request_id": 14,
+      "cash_balance": 46338.09,
+      "inventory_value": 3651.95,
+      "fulfilled": false,
+      "unfulfilled": true
+    },
+    {
+      "request_id": 15,
+      "cash_balance": 46418.09,
+      "inventory_value": 3571.95,
+      "fulfilled": false,
+      "unfulfilled": true
+    },
+    {
+      "request_id": 16,
+      "cash_balance": 46454.59,
+      "inventory_value": 3535.45,
+      "fulfilled": false,
+      "unfulfilled": true
+    },
+    {
+      "request_id": 17,
+      "cash_balance": 46524.39,
+      "inventory_value": 3465.6499999999996,
+      "fulfilled": false,
+      "unfulfilled": true
+    },
+    {
+      "request_id": 18,
+      "cash_balance": 46639.03999999999,
+      "inventory_value": 3351.0,
+      "fulfilled": false,
+      "unfulfilled": false
+    },
+    {
+      "request_id": 19,
+      "cash_balance": 46639.03999999999,
+      "inventory_value": 3351.0,
+      "fulfilled": false,
+      "unfulfilled": false
+    },
+    {
+      "request_id": 20,
+      "cash_balance": 47743.03999999999,
+      "inventory_value": 2247.0,
+      "fulfilled": false,
+      "unfulfilled": true
+    }
+  ]
+}

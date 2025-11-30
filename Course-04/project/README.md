@@ -92,3 +92,71 @@ Make sure to submit the following files:
 4. Outputs from your test run (like `test_results.csv`)
 
 ---
+
+## Updated Run Instructions (Enhanced System)
+
+### Environment
+Dieses Projekt nutzt das vorhandene venv `py-3-13-9`. Falls du lokal arbeitest und kein identisches venv hast, kannst du ein neues erstellen:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements_local.txt
+```
+
+### Vollständiger Systemlauf
+Verarbeitet alle Requests aus `quote_requests_sample.csv` und erzeugt `test_results.csv`:
+```bash
+cd Course-04/project
+../../py-3-13-9/bin/python multi_agent_system.py
+```
+
+### Smoke-Test (nur erste Anfrage zur schnellen Prüfung)
+```bash
+cd Course-04/project
+USE_SMOKE=1 ../../py-3-13-9/bin/python multi_agent_system.py
+```
+
+### Unit-Tests ausführen
+```bash
+cd Course-04/project
+../../py-3-13-9/bin/python -m unittest discover -s tests -p 'test_*.py' -v
+```
+
+### Diagram rendering (optional)
+If Node.js is available, you can render the Mermaid diagram to PNG/SVG:
+```bash
+cd Course-04/project
+chmod +x render_diagram.sh
+./render_diagram.sh workflow.mmd
+```
+
+### Wichtige Dateien
+- `multi_agent_system.py`: Konsolidierte Implementierung aller Agents und Tools
+- `workflow.mmd`: Mermaid Diagramm der Agenten-Architektur
+- `requirements_local.txt`: Gepinnte Abhängigkeiten (falls `requirements.txt` leer ist)
+- `tests/test_core.py`: Unit-Tests für Kernlogik
+- `test_results.csv`: Output nach vollständigem Lauf
+
+### Funktionale Verbesserungen
+- Synonym-Normalisierung für Item-Namen (reduziert Fehlkäufe)
+- Caching von Lieferzeit-Berechnungen (vermeidet redundante Tool-Aufrufe)
+- Smoke-Test Umschalter via `USE_SMOKE` Environment-Variable
+- Robuste Fehlerausgaben mit konsistentem Prefix
+
+### Bewertungskriterien Abdeckung (Rubric)
+| Kriterium | Status |
+|-----------|--------|
+| Architekturdiagramm | Vorhanden (`workflow.mmd`) |
+| Max. 5 Agents | 4 implementiert (Orchestrator, Inventory, Quote, Sales) |
+| Tools nutzen DB-Funktionen | Erfüllt (siehe Mapping im Diagramm) |
+| Fehlerbehandlung & kein Endlosloop | Erfüllt (deterministische Iteration, try/except) |
+| Finanz-/Inventar-Updates | Erfüllt (Berichte nach jeder Anfrage) |
+| Output-Transparenz | Erfüllt (Kunden-orientierte Antwort + System-Report) |
+| Tests | Basis-Unit-Tests vorhanden |
+
+---
+
+## Notes
+
+See `design_notes.md` for architectural decisions, error handling, testing scope, and file map.
