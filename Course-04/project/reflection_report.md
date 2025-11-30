@@ -1,7 +1,6 @@
 # Multi-Agent Inventory & Sales System - Reflection Report
 ## The Beaver's Choice Paper Company
 
-**Author:** Glenn  
 **Date:** November 30, 2025  
 **Framework:** smolagents  
 **Model:** gpt-4o-mini  
@@ -449,6 +448,7 @@ With the suggested improvements, the system could:
 3. `test_results.csv` - Evaluation results (partial)
 4. `reflection_report.md` - This document
 5. `munder_difflin.db` - SQLite database with test data
+6. `full_test_output.log` - SQLite database with test data
 
 ---
 
