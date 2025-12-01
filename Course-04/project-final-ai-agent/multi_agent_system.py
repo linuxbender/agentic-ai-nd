@@ -3,12 +3,12 @@ Multi-Agent Inventory & Sales System for The Beaver's Choice Paper Company
 ===========================================================================
 
 This system implements a multi-agent architecture with the following components:
-- Orchestrator Agent: Coordinates all operations and handles customer interactions
+- Orchestrator Agent: Coordinates all operations using managed_agents pattern
 - Inventory Management Agent: Handles stock queries and reorder decisions
 - Quote Generation Agent: Creates competitive quotes with appropriate discounts
 - Sales Transaction Agent: Processes orders and manages financial transactions
 
-Framework: smolagents
+Framework: smolagents with managed_agents delegation pattern
 Database: SQLite (munder_difflin.db)
 """
 
@@ -18,6 +18,7 @@ import os
 import time
 import dotenv
 import ast
+import logging
 from sqlalchemy.sql import text
 from datetime import datetime, timedelta
 from typing import Dict, List, Union
@@ -25,6 +26,13 @@ from sqlalchemy import create_engine, Engine
 
 # Import smolagents framework
 from smolagents import tool, ToolCallingAgent, OpenAIServerModel
+
+# Configure logging to track agent execution
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables from parent directory if not found locally
 from dotenv import load_dotenv
@@ -776,12 +784,16 @@ def calculate_discount_tool(base_price: float, quantity: int, event_type: str = 
     Args:
         base_price: Base price before discount
         quantity: Number of units
-        event_type: Type of event (e.g., 'wedding', 'conference')
+        event_type: Type of event (e.g., 'wedding', 'conference', 'corporate'), empty string if not provided
     
     Returns:
         String with discount calculation details
     """
     try:
+        # Handle None or empty event_type
+        if not event_type:
+            event_type = ""
+            
         discount_percentage = 0.0
         discount_reason = ""
         
@@ -798,7 +810,7 @@ def calculate_discount_tool(base_price: float, quantity: int, event_type: str = 
         
         # Event-based additional discount
         event_discount = 0.0
-        if event_type.lower() in ['wedding', 'corporate', 'conference']:
+        if event_type and event_type.lower() in ['wedding', 'corporate', 'conference']:
             event_discount = 3.0
             discount_reason += f" + Special event ({event_type})"
         
@@ -830,49 +842,83 @@ model = OpenAIServerModel(
 )
 
 # Inventory Management Agent
+# Handles stock queries, inventory summaries, and delivery time estimates
 inventory_agent = ToolCallingAgent(
+    name="inventory_agent",
     tools=[
         check_inventory_tool,
         get_all_inventory_tool,
         check_delivery_time_tool
     ],
-    model=model
+    model=model,
+    description="Handles stock queries, inventory summaries, and delivery time estimates"
 )
 
 # Quote Generation Agent
+# Handles pricing, discounts, and quote generation
 quote_agent = ToolCallingAgent(
+    name="quote_agent",
     tools=[
         check_inventory_tool,
         search_quote_history_tool,
         calculate_discount_tool,
         get_financial_status_tool
     ],
-    model=model
+    model=model,
+    description="Generates quotes with appropriate discounts based on quantity and event type"
 )
 
 # Sales Transaction Agent
+# Handles order processing and transaction recording
 sales_agent = ToolCallingAgent(
+    name="sales_agent",
     tools=[
         process_sale_tool,
         check_inventory_tool,
         get_financial_status_tool,
         check_delivery_time_tool
     ],
-    model=model
+    model=model,
+    description="Processes sales transactions and updates inventory records"
 )
 
 # Orchestrator Agent
+# Coordinates all operations and delegates to specialized worker agents
+# Uses managed_agents pattern - NO TOOLS, only delegation
 orchestrator_agent = ToolCallingAgent(
-    tools=[
-        check_inventory_tool,
-        get_all_inventory_tool,
-        check_delivery_time_tool,
-        search_quote_history_tool,
-        calculate_discount_tool,
-        get_financial_status_tool,
-        process_sale_tool
-    ],
-    model=model
+    name="orchestrator_agent",
+    tools=[],  # No tools - delegates to worker agents
+    model=model,
+    managed_agents=[inventory_agent, quote_agent, sales_agent],
+    instructions="""
+You are the Orchestrator Agent for The Beaver's Choice Paper Company's multi-agent system.
+
+Your role is to coordinate between specialized worker agents to fulfill customer requests.
+
+Available Worker Agents:
+1. inventory_agent - Handles stock queries, inventory summaries, delivery estimates
+2. quote_agent - Generates quotes, calculates discounts, searches quote history
+3. sales_agent - Processes sales transactions, records orders, updates inventory
+
+Your responsibilities:
+- Analyze incoming customer requests to determine their needs
+- Delegate tasks to the appropriate specialized agents
+- Coordinate multi-step workflows when needed
+- Synthesize responses from multiple agents into coherent customer communications
+- Ensure customer-facing responses are professional, transparent, and protect sensitive data
+
+Workflow patterns:
+1. For inventory inquiries → Use inventory_agent
+2. For quote requests → Use inventory_agent (check stock), then quote_agent (calculate price)
+3. For order processing → Use inventory_agent (verify stock), sales_agent (process transaction)
+
+Customer communication guidelines:
+- Provide clear, actionable information
+- Explain reasons for unavailability or delays
+- Suggest alternatives when possible
+- Do NOT reveal internal profit margins, exact supplier costs, or system errors
+- Maintain professional, helpful tone
+"""
 )
 
 # ============================================================================
@@ -884,6 +930,10 @@ def run_test_scenarios(max_requests: int | None = None):
     Run the multi-agent system through test scenarios from quote_requests_sample.csv.
     max_requests: Optional Begrenzung für Smoke-Tests.
     """
+    logger.info("=" * 80)
+    logger.info("INITIALIZING MULTI-AGENT INVENTORY & SALES SYSTEM")
+    logger.info("=" * 80)
+    
     print("=" * 80)
     print("INITIALIZING MULTI-AGENT INVENTORY & SALES SYSTEM")
     print("=" * 80)
@@ -898,6 +948,7 @@ def run_test_scenarios(max_requests: int | None = None):
         quote_requests_sample.dropna(subset=["request_date"], inplace=True)
         quote_requests_sample = quote_requests_sample.sort_values("request_date")
     except Exception as e:
+        logger.error(f"FATAL: Error loading test data: {e}")
         print(f"FATAL: Error loading test data: {e}")
         return
 
@@ -907,6 +958,8 @@ def run_test_scenarios(max_requests: int | None = None):
     current_cash = report["cash_balance"]
     current_inventory = report["inventory_value"]
 
+    logger.info(f"Initial Financial State: Cash=${current_cash:,.2f}, Inventory=${current_inventory:,.2f}")
+    
     print(f"\nInitial Financial State:")
     print(f"  Cash Balance: ${current_cash:,.2f}")
     print(f"  Inventory Value: ${current_inventory:,.2f}")
@@ -922,6 +975,11 @@ def run_test_scenarios(max_requests: int | None = None):
         _delivery_cache.clear()
         request_date = row["request_date"].strftime("%Y-%m-%d")
 
+        logger.info(f"\n{'=' * 80}")
+        logger.info(f"REQUEST {idx+1} OF {len(quote_requests_sample)}")
+        logger.info(f"Date: {request_date}, Context: {row['job']} - {row['event']}")
+        logger.info(f"Customer Request: {row['request'][:100]}...")
+        
         print(f"\n{'=' * 80}")
         print(f"REQUEST {idx+1} OF {len(quote_requests_sample)}")
         print(f"{'=' * 80}")
@@ -942,10 +1000,13 @@ Please process this request appropriately.
 """
 
         try:
+            logger.info(f"Delegating request to orchestrator_agent...")
             response = orchestrator_agent.run(request_with_context)
             response_text = str(response)
+            logger.info(f"Request processed successfully")
         except Exception as e:
             response_text = f"ERROR: Failed to process request - {str(e)}"
+            logger.error(f"ERROR processing request: {e}")
             print(f"ERROR processing request: {e}")
 
         # Update state
@@ -955,6 +1016,8 @@ Please process this request appropriately.
         
         cash_change = new_cash - current_cash
         inventory_change = new_inventory - current_inventory
+
+        logger.info(f"Financial Update: Cash ${current_cash:,.2f} → ${new_cash:,.2f} (Change: ${cash_change:+,.2f})")
 
         print("\n" + "-" * 80)
         print("SYSTEM RESPONSE:")
@@ -982,11 +1045,19 @@ Please process this request appropriately.
         time.sleep(1)  # Rate limiting
 
     # Final report
+    logger.info("\n" + "=" * 80)
+    logger.info("FINAL FINANCIAL REPORT")
+    logger.info("=" * 80)
+    
     print("\n" + "=" * 80)
     print("FINAL FINANCIAL REPORT")
     print("=" * 80)
     final_date = quote_requests_sample["request_date"].max().strftime("%Y-%m-%d")
     final_report = generate_financial_report(final_date)
+    
+    logger.info(f"Final Cash Balance: ${final_report['cash_balance']:,.2f}")
+    logger.info(f"Final Inventory Value: ${final_report['inventory_value']:,.2f}")
+    
     print(f"Final Cash Balance: ${final_report['cash_balance']:,.2f}")
     print(f"Final Inventory Value: ${final_report['inventory_value']:,.2f}")
     print(f"Total Assets: ${final_report['total_assets']:,.2f}")
@@ -999,6 +1070,7 @@ Please process this request appropriately.
     # Save results
     results_df = pd.DataFrame(results)
     results_df.to_csv("test_results.csv", index=False)
+    logger.info(f"Results saved to test_results.csv")
     print(f"\nResults saved to test_results.csv")
     print("=" * 80)
     
