@@ -1065,6 +1065,5 @@ Provide a professional customer response explaining the outcome.
 
 
 if __name__ == "__main__":
-    # Standard: voller Lauf; für schnellen Test kann env USE_SMOKE=1 gesetzt werden
     max_req = 1 if os.getenv("USE_SMOKE") == "1" else None
     results = run_test_scenarios(max_requests=max_req)
