@@ -4,6 +4,7 @@
 **Date:** December 1, 2025  
 **Framework:** smolagents with managed_agents delegation pattern  
 **Model:** gpt-4o-mini  
+**Orchestrator Pattern:** CodeAgent (recommended by smolagents documentation)
 
 ---
 
@@ -11,25 +12,52 @@
 
 ### 1.1 Overview
 
-The implemented multi-agent system uses the **managed_agents pattern** from smolagents, where a coordinating orchestrator agent delegates tasks to specialized worker agents. This architecture ensures true multi-agent execution where multiple agents actively participate in processing each customer request.
+The implemented multi-agent system uses the **managed_agents pattern** from smolagents with **CodeAgent** as the orchestrator. This follows the recommended pattern from the smolagents documentation for multi-agent coordination. The CodeAgent orchestrator generates and executes Python code to delegate tasks to specialized worker agents.
 
 ### 1.2 Agent Roles and Responsibilities
 
-#### Orchestrator Agent
-The Orchestrator Agent serves as the coordination hub that delegates tasks to specialized worker agents. **Critically, it has NO tools of its own** - it exclusively coordinates through the `managed_agents` mechanism.
+#### Orchestrator Agent (CodeAgent)
+The Orchestrator uses CodeAgent to generate and execute Python code for coordinating worker agents. **It has NO tools of its own** - it exclusively coordinates through the `managed_agents` mechanism.
 
 **Key Characteristics:**
+- Uses CodeAgent (not ToolCallingAgent) as recommended by smolagents
 - No direct tool access - relies entirely on worker agents
-- Analyzes customer requests to determine which agents should handle specific tasks
-- Coordinates multi-step workflows involving multiple agents
+- Generates Python code to call appropriate agents in sequence
+- Receives explicit step-by-step instructions in prompts
 - Synthesizes responses from worker agents into coherent customer communications
-- Ensures business rules and data privacy guidelines are followed
+
+**Why CodeAgent?**
+The smolagents reference documentation recommends CodeAgent for orchestrators in the managed_agents pattern because:
+- More flexible in calling agents dynamically
+- Can handle complex multi-step workflows through code generation
+- Better suited for conditional logic and agent selection
+- Follows the established pattern in the smolagents examples
 
 **Delegation Strategy:**
 ```
-Inventory Inquiry → inventory_agent
-Quote Request → inventory_agent → quote_agent
-Order Processing → inventory_agent → sales_agent
+Customer Request with explicit instructions
+      ↓
+CodeAgent Orchestrator (generates Python code)
+      ↓
+  Code calls: inventory_agent, quote_agent, sales_agent
+      ↓
+Actions taken (inventory checks, quotes generated, sales processed)
+      ↓
+Results synthesized into customer response
+```
+
+**Critical Implementation Detail:**
+CodeAgent requires very explicit, step-by-step instructions. The prompts must clearly state:
+- Which agent to call for each step
+- What task each agent should perform
+- When to take actions (vs. just generating responses)
+- The order of operations
+
+Example prompt structure:
+```
+STEP 1: Call inventory_agent to check stock...
+STEP 2: Call quote_agent to generate pricing...
+STEP 3: If ORDER, call sales_agent to process transaction...
 ```
 
 #### Inventory Management Agent

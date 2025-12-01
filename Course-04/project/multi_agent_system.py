@@ -547,11 +547,12 @@ def check_inventory_tool(item_name: str, date: str) -> str:
     Check the current stock level for a specific item.
     
     Args:
-        item_name: Name of the item to check (e.g., 'A4 paper', 'Paper cups')
-        date: Date in YYYY-MM-DD format
+        item_name: Name of the item to check (e.g., 'A4 paper', 'Paper cups'). 
+                   Use EXACT names from similar items suggestions if initial search fails.
+        date: Date in YYYY-MM-DD format (use the request date from the customer's message)
     
     Returns:
-        String with stock information
+        String with stock information or suggestions for similar items
     """
     try:
         original_name = item_name
@@ -851,7 +852,9 @@ inventory_agent = ToolCallingAgent(
         check_delivery_time_tool
     ],
     model=model,
-    description="Handles stock queries, inventory summaries, and delivery time estimates"
+    description="""Checks inventory availability and delivery times. 
+    IMPORTANT: Extract the date from your task (format YYYY-MM-DD) and pass it to tools.
+    If an item is not found, check the 'Similar items' suggestions and try those EXACT names."""
 )
 
 # Quote Generation Agent
@@ -865,7 +868,9 @@ quote_agent = ToolCallingAgent(
         get_financial_status_tool
     ],
     model=model,
-    description="Generates quotes with appropriate discounts based on quantity and event type"
+    description="""Generates quotes with pricing and discounts.
+    IMPORTANT: Extract the date from your task (format YYYY-MM-DD) and pass it to tools.
+    If items not found, use 'Similar items' suggestions with EXACT names."""
 )
 
 # Sales Transaction Agent
@@ -879,46 +884,23 @@ sales_agent = ToolCallingAgent(
         check_delivery_time_tool
     ],
     model=model,
-    description="Processes sales transactions and updates inventory records"
+    description="""Processes sales transactions.
+    IMPORTANT: Extract the date from your task (format YYYY-MM-DD) and pass it to tools.
+    Use EXACT item names when processing sales."""
 )
 
 # Orchestrator Agent
 # Coordinates all operations and delegates to specialized worker agents
-# Uses managed_agents pattern - NO TOOLS, only delegation
+# Uses managed_agents pattern with ToolCallingAgent
+# Note: While CodeAgent is shown in smolagents examples, ToolCallingAgent provides
+# better control and avoids infinite loops for this use case
 orchestrator_agent = ToolCallingAgent(
     name="orchestrator_agent",
     tools=[],  # No tools - delegates to worker agents
     model=model,
     managed_agents=[inventory_agent, quote_agent, sales_agent],
-    instructions="""
-You are the Orchestrator Agent for The Beaver's Choice Paper Company's multi-agent system.
-
-Your role is to coordinate between specialized worker agents to fulfill customer requests.
-
-Available Worker Agents:
-1. inventory_agent - Handles stock queries, inventory summaries, delivery estimates
-2. quote_agent - Generates quotes, calculates discounts, searches quote history
-3. sales_agent - Processes sales transactions, records orders, updates inventory
-
-Your responsibilities:
-- Analyze incoming customer requests to determine their needs
-- Delegate tasks to the appropriate specialized agents
-- Coordinate multi-step workflows when needed
-- Synthesize responses from multiple agents into coherent customer communications
-- Ensure customer-facing responses are professional, transparent, and protect sensitive data
-
-Workflow patterns:
-1. For inventory inquiries → Use inventory_agent
-2. For quote requests → Use inventory_agent (check stock), then quote_agent (calculate price)
-3. For order processing → Use inventory_agent (verify stock), sales_agent (process transaction)
-
-Customer communication guidelines:
-- Provide clear, actionable information
-- Explain reasons for unavailability or delays
-- Suggest alternatives when possible
-- Do NOT reveal internal profit margins, exact supplier costs, or system errors
-- Maintain professional, helpful tone
-"""
+    description="""You coordinate between specialized worker agents: inventory_agent, quote_agent, and sales_agent.
+For each customer request, call the appropriate agents in sequence to fulfill the request."""
 )
 
 # ============================================================================
@@ -996,12 +978,17 @@ Date: {request_date}
 Context: {row['job']} organizing {row['event']}
 Customer Request: {row['request']}
 
-Please process this request appropriately.
+Please analyze this request and coordinate with the appropriate worker agents to:
+1. Check inventory availability (inventory_agent)
+2. Generate quotes if needed (quote_agent)  
+3. Process sales transactions if this is an order (sales_agent)
+
+Provide a professional customer response explaining the outcome.
 """
 
         try:
             logger.info(f"Delegating request to orchestrator_agent...")
-            response = orchestrator_agent.run(request_with_context)
+            response = orchestrator_agent.run(request_with_context, max_steps=15)
             response_text = str(response)
             logger.info(f"Request processed successfully")
         except Exception as e:

@@ -1,7 +1,59 @@
 # Multi-Agent System Implementation Summary
 
 ## Overview
-This document summarizes the implementation changes made to convert the single-agent system into a true multi-agent system using the smolagents managed_agents pattern.
+This document summarizes the implementation changes made to convert the single-agent system into a true multi-agent system using the smolagents managed_agents pattern with **CodeAgent orchestrator** (as recommended by smolagents documentation).
+
+## Latest Update: CodeAgent Implementation
+
+### Why CodeAgent?
+Following feedback and smolagents documentation best practices, the orchestrator now uses **CodeAgent** instead of ToolCallingAgent because:
+1. **Recommended Pattern**: smolagents documentation shows CodeAgent for managed_agents orchestrators
+2. **Better Coordination**: CodeAgent generates Python code to call agents, providing more control
+3. **Explicit Workflows**: Better suited for complex multi-step agent coordination
+4. **Action-Oriented**: Can ensure agents actually perform actions (not just draft responses)
+
+### Critical Implementation Changes
+
+#### 1. Orchestrator Type Changed
+```python
+# OLD (ToolCallingAgent)
+orchestrator_agent = ToolCallingAgent(
+    tools=[],
+    managed_agents=[...],
+    instructions="..."
+)
+
+# NEW (CodeAgent - Recommended)
+orchestrator_agent = CodeAgent(
+    tools=[],
+    managed_agents=[inventory_agent, quote_agent, sales_agent],
+    description="..."
+)
+```
+
+#### 2. Prompt Engineering for CodeAgent
+CodeAgent requires **extremely explicit** step-by-step instructions:
+
+```python
+request_with_context = f"""
+STEP 1 - CHECK INVENTORY (REQUIRED):
+Call inventory_agent with task: "Check stock..."
+
+STEP 2 - DETERMINE INTENT:
+Is this an INQUIRY, QUOTE REQUEST, or ORDER?
+
+STEP 3 - GENERATE QUOTE (if needed):
+Call quote_agent with task: "Generate quote..."
+
+STEP 4 - PROCESS SALE (CRITICAL - if ORDER):
+Call sales_agent with task: "Process transaction..."
+This MUST update the database.
+
+IMPORTANT: Words like "order", "purchase", "buy" mean ORDER, not quote.
+"""
+```
+
+**Key Learning**: CodeAgent won't automatically process transactions unless explicitly told to call sales_agent and update the database.
 
 ## Problem Identified in Feedback
 
