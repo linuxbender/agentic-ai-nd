@@ -1,0 +1,40 @@
+<svg width="1350" height="1080" xmlns="http://www.w3.org/2000/svg" style="font-family: Arial, sans-serif;">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="6" refY="3" orient="auto" fill="#555">
+      <path d="M0,0 L0,6 L6,3 z"/>
+    </marker>
+  </defs>
+
+  <style>
+    .box { width: 450px; height: 120px; rx: 16; stroke-width: 3; }
+    .label { font-size: 38px; font-weight: bold; }
+  </style>
+
+  <!-- Bernoulli -->
+  <rect x="450" y="90" class="box" fill="#e8f0fe" stroke="#4a72d9"/>
+  <text x="675" y="160" class="label" text-anchor="middle" fill="#1a3d8f">Bernoulli</text>
+
+  <line x1="675" y1="200" x2="675" y2="280" stroke="#555" stroke-width="3" marker-end="url(#arrow)" />
+
+  <!-- Markov Chains -->
+  <rect x="450" y="280" class="box" fill="#e6f7f1" stroke="#32a67f"/>
+  <text x="675" y="350" class="label" text-anchor="middle" fill="#1c7052">Markov Chains</text>
+
+  <line x1="675" y1="390" x2="675" y2="470" stroke="#555" stroke-width="3" marker-end="url(#arrow)" />
+
+  <!-- PageRank -->
+  <rect x="450" y="470" class="box" fill="#fff4e5" stroke="#e6a23c"/>
+  <text x="675" y="540" class="label" text-anchor="middle" fill="#b06d17">PageRank</text>
+
+  <line x1="675" y1="580" x2="675" y2="660" stroke="#555" stroke-width="3" marker-end="url(#arrow)" />
+
+  <!-- n-Gramm -->
+  <rect x="450" y="660" class="box" fill="#f5e6ff" stroke="#a45ed9"/>
+  <text x="675" y="730" class="label" text-anchor="middle" fill="#6b3396">n-Gramm Modelle</text>
+
+  <line x1="675" y1="770" x2="675" y2="850" stroke="#555" stroke-width="3" marker-end="url(#arrow)" />
+
+  <!-- LLM -->
+  <rect x="450" y="850" class="box" fill="#e8ffe8" stroke="#58b84c"/>
+  <text x="675" y="920" class="label" text-anchor="middle" fill="#317a28">LLM</text>
+</svg>
